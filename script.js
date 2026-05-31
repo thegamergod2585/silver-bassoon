@@ -44,7 +44,7 @@ const games = [
     },
     {
         id: 7,
-        name: "Snow Rider",
+        name: "Snow Rider work in progress",
         description: "Ride your sledge, dodge obstacles, collect presents and buy upgrades!",
         emoji: "🎿",
         url: "games/snow-rider.html"
