@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Rider - GameHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        .game-main {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 1400px;
+        }
+        .game-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        #gameCanvas {
+            width: 100%;
+            max-width: 600px;
+            height: 600px;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            border: 4px solid white;
+            border-radius: 15px;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 20px;
+            border-radius: 10px;
+        }
+        .hud div {
+            margin: 5px 0;
+        }
+        .shop-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            min-width: 250px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .shop-panel h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .shop-section {
+            margin-bottom: 20px;
+        }
+        .shop-section h3 {
+            color: #764ba2;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .shop-item {
+            background: #f5f5f5;
+            border: 2px solid #ddd;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .shop-item:hover {
+            background: #e8e8e8;
+            border-color: #667eea;
+        }
+        .shop-item.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .shop-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .shop-item-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .shop-item-emoji {
+            font-size: 20px;
+        }
+        .shop-item-price {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .shop-item-owned {
+            font-size: 12px;
+            color: #00aa00;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .back-btn {
+            background: #666;
+        }
+        .back-btn:hover:not(:disabled) {
+            background: #888;
+        }
+        .stats-display {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+        }
+        @media (max-width: 900px) {
+            .game-main {
+                flex-direction: column;
+            }
+            .shop-panel {
+                max-width: 100%;
+            }
+            #gameCanvas {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-main">
+        <div class="game-section">
+            <canvas id="gameCanvas" width="600" height="600"></canvas>
+            <div class="hud">
+                <div>🎿 Distance: <span id="distance">0</span>m</div>
+                <div>💰 Money: <span id="money">0</span></div>
+                <div>🎁 Presents: <span id="presents">0</span></div>
+                <div>📈 Level: <span id="level">1</span></div>
+            </div>
+            <div class="instructions">
+                <p>← → Arrow Keys to Move | Space to Jump | Collect Presents & Dodge Obstacles!</p>
+            </div>
+        </div>
+
+        <div class="shop-panel">
+            <h2>🛒 SHOP</h2>
+            
+            <div class="stats-display">
+                <div>💰 Available: <strong id="shopMoney">0</strong></div>
+                <div>🎁 Total Presents: <strong id="shopPresents">0</strong></div>
+            </div>
+
+            <div class="shop-section">
+                <h3>🛷 Sledges</h3>
+                <div id="sledgesContainer"></div>
+            </div>
+
+            <div class="shop-section">
+                <h3>⚡ Power-ups</h3>
+                <div id="powerupsContainer"></div>
+            </div>
+
+            <button onclick="goHome()" class="back-btn">← Back to Home</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game Objects
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 30,
+            height: 40,
+            speed: 5,
+            velY: 0,
+            gravity: 0.6,
+            onGround: false
+        };
+
+        // Game State
+        let gameState = {
+            distance: 0,
+            money: 0,
+            presents: 0,
+            level: 1,
+            gameRunning: true,
+            speed: 4,
+            activeSledge: 'basic',
+            activePowerups: [],
+            powerupDuration: {}
+        };
+
+        // Sledge Types
+        const sledges = {
+            basic: { name: 'Basic Sledge', emoji: '🛷', price: 0, speed: 4, owned: true },
+            gold: { name: 'Gold Sledge', emoji: '🏅', price: 500, speed: 5, owned: false },
+            ice: { name: 'Ice Sledge', emoji: '❄️', price: 1000, speed: 6, owned: false },
+            rocket: { name: 'Rocket Sledge', emoji: '🚀', price: 2000, speed: 8, owned: false }
+        };
+
+        // Power-ups
+        const powerups = {
+            shield: { name: 'Shield', emoji: '🛡️', price: 200, duration: 300, owned: 0 },
+            magnet: { name: 'Magnet', emoji: '🧲', price: 300, duration: 300, owned: 0 },
+            speed: { name: 'Speed Boost', emoji: '⚡', price: 250, duration: 200, owned: 0 }
+        };
+
+        // Game Objects
+        let obstacles = [];
+        let collectibles = [];
+        const keys = {};
+
+        // Input
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (player.onGround) {
+                    player.velY = -15;
+                    player.onGround = false;
+                }
+            }
+        });
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // Spawn obstacles
+        function spawnObstacle() {
+            obstacles.push({
+                x: Math.random() * (canvas.width - 50),
+                y: -50,
+                width: 50,
+                height: 50,
+                type: 'tree',
+                emoji: '🌲'
+            });
+        }
+
+        // Spawn collectibles
+        function spawnCollectible() {
+            collectibles.push({
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                type: Math.random() > 0.3 ? 'present' : 'money',
+                emoji: Math.random() > 0.3 ? '🎁' : '💰',
+                value: Math.random() > 0.3 ? 10 : 25
+            });
+        }
+
+        function update() {
+            if (!gameState.gameRunning) return;
+
+            // Movement
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+
+            // Gravity
+            player.velY += player.gravity;
+            player.y += player.velY;
+
+            // Ground collision
+            if (player.y >= canvas.height - 100) {
+                player.y = canvas.height - 100;
+                player.velY = 0;
+                player.onGround = true;
+            } else {
+                player.onGround = false;
+            }
+
+            // Update distance and difficulty
+            gameState.distance += gameState.speed / 10;
+            gameState.level = Math.floor(gameState.distance / 1000) + 1;
+            gameState.speed = 4 + (gameState.level - 1) * 0.5;
+            document.getElementById('distance').textContent = Math.floor(gameState.distance);
+            document.getElementById('level').textContent = gameState.level;
+
+            // Update obstacles
+            obstacles.forEach((obs, i) => {
+                obs.y += gameState.speed;
+                if (obs.y > canvas.height) obstacles.splice(i, 1);
+
+                // Collision with shield
+                if (!gameState.activePowerups.includes('shield')) {
+                    if (player.x < obs.x + obs.width && player.x + player.width > obs.x &&
+                        player.y < obs.y + obs.height && player.y + player.height > obs.y) {
+                        endGame();
+                    }
+                }
+            });
+
+            // Update collectibles
+            collectibles.forEach((col, i) => {
+                col.y += gameState.speed;
+                if (col.y > canvas.height) collectibles.splice(i, 1);
+
+                if (player.x < col.x + col.width && player.x + player.width > col.x &&
+                    player.y < col.y + col.height && player.y + player.height > col.y) {
+                    collectibles.splice(i, 1);
+                    if (col.type === 'present') {
+                        gameState.presents += col.value;
+                    } else {
+                        gameState.money += col.value;
+                    }
+                    document.getElementById('money').textContent = gameState.money;
+                    document.getElementById('presents').textContent = gameState.presents;
+                }
+            });
+
+            // Spawning
+            if (Math.random() < 0.02) spawnObstacle();
+            if (Math.random() < 0.015) spawnCollectible();
+
+            // Update powerup durations
+            Object.keys(gameState.powerupDuration).forEach(key => {
+                gameState.powerupDuration[key]--;
+                if (gameState.powerupDuration[key] <= 0) {
+                    gameState.activePowerups = gameState.activePowerups.filter(p => p !== key);
+                    delete gameState.powerupDuration[key];
+                }
+            });
+        }
+
+        function draw() {
+            // Sky
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Snow ground
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+            ctx.strokeStyle = '#CCCCCC';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, canvas.height - 100);
+                ctx.lineTo(i + 20, canvas.height - 100 + 20);
+                ctx.stroke();
+            }
+
+            // Draw player
+            let playerEmoji = '🧑';
+            if (gameState.activePowerups.includes('shield')) ctx.fillStyle = '#FFD700';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(playerEmoji, player.x + player.width / 2, player.y + player.height / 2);
+            ctx.fillText(sledges[gameState.activeSledge].emoji, player.x + player.width / 2, player.y + player.height / 2 + 20);
+
+            // Draw shield ring
+            if (gameState.activePowerups.includes('shield')) {
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(player.x + player.width / 2, player.y + player.height / 2, 45, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Draw obstacles
+            ctx.font = '35px Arial';
+            obstacles.forEach(obs => {
+                ctx.fillText(obs.emoji, obs.x + obs.width / 2, obs.y + obs.height / 2);
+            });
+
+            // Draw collectibles
+            ctx.font = '25px Arial';
+            collectibles.forEach(col => {
+                ctx.fillText(col.emoji, col.x + col.width / 2, col.y + col.height / 2);
+            });
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameState.gameRunning = false;
+            alert(`Game Over! Distance: ${Math.floor(gameState.distance)}m\nMoney Earned: ${gameState.money}\nPresents: ${gameState.presents}`);
+            location.reload();
+        }
+
+        // Shop Functions
+        function buySledge(sledgeType) {
+            const sledge = sledges[sledgeType];
+            if (!sledge.owned && gameState.money >= sledge.price) {
+                gameState.money -= sledge.price;
+                sledge.owned = true;
+                gameState.activeSledge = sledgeType;
+                updateShop();
+                document.getElementById('money').textContent = gameState.money;
+            }
+        }
+
+        function selectSledge(sledgeType) {
+            if (sledges[sledgeType].owned) {
+                gameState.activeSledge = sledgeType;
+                updateShop();
+            }
+        }
+
+        function buyPowerup(powerupType) {
+            const powerup = powerups[powerupType];
+            if (gameState.money >= powerup.price) {
+                gameState.money -= powerup.price;
+                powerup.owned++;
+                updateShop();
+                document.getElementById('money').textContent = gameState.money;
+            }
+        }
+
+        function usePowerup(powerupType) {
+            const powerup = powerups[powerupType];
+            if (powerup.owned > 0 && !gameState.activePowerups.includes(powerupType)) {
+                powerup.owned--;
+                gameState.activePowerups.push(powerupType);
+                gameState.powerupDuration[powerupType] = powerup.duration;
+                updateShop();
+            }
+        }
+
+        function updateShop() {
+            // Update sledges
+            const sledgesContainer = document.getElementById('sledgesContainer');
+            sledgesContainer.innerHTML = '';
+            Object.entries(sledges).forEach(([key, sledge]) => {
+                const div = document.createElement('div');
+                div.className = 'shop-item' + (gameState.activeSledge === key ? ' active' : '');
+                div.innerHTML = `
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">${sledge.emoji} ${sledge.name}</span>
+                        <span class="shop-item-emoji">⚡${sledge.speed}</span>
+                    </div>
+                    <div class="shop-item-price">${sledge.price === 0 ? 'Free' : '💰 ' + sledge.price}</div>
+                    ${sledge.owned ? '<div class="shop-item-owned">✓ Owned</div>' : ''}
+                `;
+                if (!sledge.owned) {
+                    div.onclick = () => buySledge(key);
+                } else {
+                    div.onclick = () => selectSledge(key);
+                }
+                sledgesContainer.appendChild(div);
+            });
+
+            // Update powerups
+            const powerupsContainer = document.getElementById('powerupsContainer');
+            powerupsContainer.innerHTML = '';
+            Object.entries(powerups).forEach(([key, powerup]) => {
+                const div = document.createElement('div');
+                const isActive = gameState.activePowerups.includes(key);
+                div.className = 'shop-item' + (isActive ? ' active' : '');
+                div.innerHTML = `
+                    <div class="shop-item-header">
+                        <span class="shop-item-name">${powerup.emoji} ${powerup.name}</span>
+                        <span class="shop-item-emoji">×${powerup.owned}</span>
+                    </div>
+                    <div class="shop-item-price">💰 ${powerup.price}</div>
+                    ${isActive ? '<div class="shop-item-owned">✓ Active</div>' : ''}
+                `;
+                if (isActive) {
+                    div.style.opacity = '0.7';
+                    div.style.pointerEvents = 'none';
+                } else if (powerup.owned > 0) {
+                    div.onclick = () => usePowerup(key);
+                } else {
+                    div.onclick = () => buyPowerup(key);
+                }
+                powerupsContainer.appendChild(div);
+            });
+
+            document.getElementById('shopMoney').textContent = gameState.money;
+            document.getElementById('shopPresents').textContent = gameState.presents;
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        // Initialize
+        updateShop();
+        gameLoop();
+    </script>
+</body>
+</html>
