@@ -41,6 +41,13 @@ const games = [
         description: "Find the mines and win",
         emoji: "💣",
         url: "games/minesweeper.html"
+    },
+    {
+        id: 7,
+        name: "Snow Rider",
+        description: "Ride your sledge, dodge obstacles, collect presents and buy upgrades!",
+        emoji: "🎿",
+        url: "games/snow-rider.html"
     }
 ];
 
@@ -61,17 +68,15 @@ function loadGames() {
             <div class="game-info">
                 <h3>${game.name}</h3>
                 <p>${game.description}</p>
-                <button class="play-btn" onclick="playGame('${game.name}')">Play Now</button>
+                <button class="play-btn" onclick="playGame('${game.url}')">Play Now</button>
             </div>
         `;
         gamesGrid.appendChild(gameCard);
     });
 }
 
-function playGame(gameName) {
-    alert(`Loading ${gameName}...`);
-    // You can add game loading logic here
-    console.log(`Playing: ${gameName}`);
+function playGame(gameUrl) {
+    window.location.href = gameUrl;
 }
 
 function scrollToGames() {
