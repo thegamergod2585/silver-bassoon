@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Master - GameHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+        .game-container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            margin: 20px;
+        }
+        h1 {
+            color: #6c5ce7;
+            margin-bottom: 20px;
+        }
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            gap: 10px;
+            margin: 20px auto;
+            justify-content: center;
+        }
+        .puzzle-tile {
+            width: 80px;
+            height: 80px;
+            font-size: 24px;
+            border: 2px solid #6c5ce7;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .puzzle-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .puzzle-tile.matched {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .score {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #2d3436;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .back-btn {
+            background: #666;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧩 Puzzle Master</h1>
+        <p>Match the pairs! Click on tiles to find matching numbers.</p>
+        <div class="puzzle-grid" id="puzzleGrid"></div>
+        <div class="score">Matches: <span id="score">0</span>/4</div>
+        <button onclick="resetGame()">Reset Game</button>
+        <button class="back-btn" onclick="goHome()">← Back to Home</button>
+    </div>
+
+    <script>
+        const tiles = [1, 1, 2, 2, 3, 3, 4, 4].sort(() => Math.random() - 0.5);
+        let flipped = [];
+        let matched = 0;
+        let firstTile = null;
+        let secondTile = null;
+
+        function initGame() {
+            const grid = document.getElementById('puzzleGrid');
+            grid.innerHTML = '';
+            flipped = [];
+            matched = 0;
+            firstTile = null;
+            secondTile = null;
+            document.getElementById('score').textContent = '0';
+            
+            tiles.forEach((num, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'puzzle-tile';
+                tile.textContent = '?';
+                tile.dataset.value = num;
+                tile.dataset.index = index;
+                tile.onclick = () => flipTile(tile);
+                grid.appendChild(tile);
+            });
+        }
+
+        function flipTile(tile) {
+            if (flipped.length >= 2 || tile.classList.contains('matched') || flipped.includes(tile)) return;
+            
+            tile.textContent = tile.dataset.value;
+            flipped.push(tile);
+
+            if (flipped.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flipped;
+            if (first.dataset.value === second.dataset.value) {
+                first.classList.add('matched');
+                second.classList.add('matched');
+                matched++;
+                document.getElementById('score').textContent = matched;
+                if (matched === 4) setTimeout(() => alert('You won! 🎉'), 300);
+            } else {
+                first.textContent = '?';
+                second.textContent = '?';
+            }
+            flipped = [];
+        }
+
+        function resetGame() {
+            tiles.sort(() => Math.random() - 0.5);
+            initGame();
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

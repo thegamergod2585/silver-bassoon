@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game - GameHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+        .game-container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            margin: 20px;
+        }
+        h1 {
+            color: #6c5ce7;
+            margin-bottom: 20px;
+        }
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            gap: 10px;
+            margin: 20px auto;
+            justify-content: center;
+        }
+        .memory-tile {
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            border: 2px solid #6c5ce7;
+            border-radius: 8px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .memory-tile:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .memory-tile.flipped {
+            background: white;
+            color: #6c5ce7;
+        }
+        .memory-tile.matched {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .stats {
+            font-size: 16px;
+            margin: 20px 0;
+            color: #2d3436;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .back-btn {
+            background: #666;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🧠 Memory Game</h1>
+        <p>Click on tiles to find matching pairs!</p>
+        <div class="memory-grid" id="memoryGrid"></div>
+        <div class="stats">
+            <div>Moves: <span id="moves">0</span></div>
+            <div>Matched: <span id="matched">0</span>/8</div>
+        </div>
+        <button onclick="resetGame()">Reset Game</button>
+        <button class="back-btn" onclick="goHome()">← Back to Home</button>
+    </div>
+
+    <script>
+        const emojis = ['🍎', '🍌', '🍊', '🍉', '🍒', '🍓', '🥑', '🍆'];
+        const gameCards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+        let flipped = [];
+        let matched = 0;
+        let moves = 0;
+
+        function initGame() {
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+            flipped = [];
+            matched = 0;
+            moves = 0;
+            document.getElementById('moves').textContent = '0';
+            document.getElementById('matched').textContent = '0';
+            
+            gameCards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-tile';
+                card.textContent = '❓';
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (flipped.length >= 2 || card.classList.contains('matched') || card.classList.contains('flipped')) return;
+            
+            card.classList.add('flipped');
+            card.textContent = card.dataset.emoji;
+            flipped.push(card);
+
+            if (flipped.length === 2) {
+                moves++;
+                document.getElementById('moves').textContent = moves;
+                setTimeout(checkMatch, 600);
+            }
+        }
+
+        function checkMatch() {
+            const [first, second] = flipped;
+            if (first.dataset.emoji === second.dataset.emoji) {
+                first.classList.add('matched');
+                second.classList.add('matched');
+                matched++;
+                document.getElementById('matched').textContent = matched;
+                if (matched === 8) setTimeout(() => alert(`You won in ${moves} moves! 🎉`), 300);
+            } else {
+                first.classList.remove('flipped');
+                second.classList.remove('flipped');
+                first.textContent = '❓';
+                second.textContent = '❓';
+            }
+            flipped = [];
+        }
+
+        function resetGame() {
+            gameCards.sort(() => Math.random() - 0.5);
+            initGame();
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

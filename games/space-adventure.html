@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Adventure - GameHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: white;
+            overflow: hidden;
+        }
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #000033, #000066);
+            margin: 0 auto;
+        }
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            z-index: 10;
+        }
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .back-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .back-btn:hover {
+            background: #888;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="hud">
+        <div>Score: <span id="score">0</span></div>
+        <div>Health: <span id="health">100</span></div>
+    </div>
+    <div class="controls">
+        <p>← → Arrow Keys to Move | Space to Shoot</p>
+    </div>
+    <button class="back-btn" onclick="goHome()">← Back</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+            width: 40,
+            height: 40,
+            speed: 5,
+            health: 100
+        };
+
+        const bullets = [];
+        const enemies = [];
+        let score = 0;
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ') {
+                e.preventDefault();
+                shoot();
+            }
+        });
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        function shoot() {
+            bullets.push({
+                x: player.x + player.width / 2,
+                y: player.y,
+                width: 5,
+                height: 15,
+                speed: 7
+            });
+        }
+
+        function spawnEnemy() {
+            enemies.push({
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: 2 + score / 100
+            });
+        }
+
+        function update() {
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+
+            bullets.forEach((b, i) => {
+                b.y -= b.speed;
+                if (b.y < 0) bullets.splice(i, 1);
+            });
+
+            enemies.forEach((e, i) => {
+                e.y += e.speed;
+                if (e.y > canvas.height) {
+                    enemies.splice(i, 1);
+                    player.health -= 10;
+                    document.getElementById('health').textContent = player.health;
+                }
+            });
+
+            bullets.forEach((b, bi) => {
+                enemies.forEach((e, ei) => {
+                    if (b.x < e.x + e.width && b.x + b.width > e.x &&
+                        b.y < e.y + e.height && b.y + b.height > e.y) {
+                        bullets.splice(bi, 1);
+                        enemies.splice(ei, 1);
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                    }
+                });
+            });
+
+            if (Math.random() < 0.02) spawnEnemy();
+            if (player.health <= 0) {
+                alert(`Game Over! Score: ${score}`);
+                location.reload();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 100, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            ctx.fillStyle = '#FFFF00';
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+
+            ctx.fillStyle = '#FF0000';
+            enemies.forEach(e => ctx.fillRect(e.x, e.y, e.width, e.height));
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '12px Arial';
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>

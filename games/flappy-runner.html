@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Runner - GameHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        }
+        #gameCanvas {
+            border: 3px solid white;
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            display: block;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .game-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 10;
+        }
+        .back-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: #666;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 10;
+        }
+        .back-btn:hover {
+            background: #888;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div class="game-info">
+        Score: <span id="score">0</span>
+    </div>
+    <div class="instructions">
+        <p>Click or Press SPACE to Jump</p>
+    </div>
+    <button class="back-btn" onclick="goHome()">← Back</button>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const bird = {
+            x: 50,
+            y: canvas.height / 2,
+            width: 30,
+            height: 30,
+            velocity: 0,
+            gravity: 0.5,
+            jump: -12
+        };
+
+        let pipes = [];
+        let score = 0;
+        let gameRunning = true;
+        const pipeGap = 120;
+        const pipeWidth = 60;
+
+        canvas.addEventListener('click', jump);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        function jump() {
+            bird.velocity = bird.jump;
+        }
+
+        function generatePipe() {
+            const minHeight = 50;
+            const maxHeight = canvas.height - pipeGap - 50;
+            const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                scored: false
+            });
+        }
+
+        function update() {
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+
+            if (bird.y + bird.height > canvas.height || bird.y < 0) {
+                gameRunning = false;
+            }
+
+            pipes.forEach((pipe, index) => {
+                pipe.x -= 5;
+
+                if (pipe.x + pipeWidth < bird.x && !pipe.scored) {
+                    score++;
+                    document.getElementById('score').textContent = score;
+                    pipe.scored = true;
+                }
+
+                if (pipe.x + pipeWidth < 0) pipes.splice(index, 1);
+
+                if (bird.x < pipe.x + pipeWidth && bird.x + bird.width > pipe.x) {
+                    if (bird.y < pipe.topHeight || bird.y + bird.height > pipe.topHeight + pipeGap) {
+                        gameRunning = false;
+                    }
+                }
+            });
+
+            if (Math.random() < 0.01) generatePipe();
+
+            if (!gameRunning) {
+                alert(`Game Over! Score: ${score}`);
+                location.reload();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(135, 206, 235, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(bird.x + bird.width / 2, bird.y + bird.height / 2, bird.width / 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(bird.x + bird.width / 2 + 5, bird.y + bird.height / 2 - 5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#228B22';
+            pipes.forEach(pipe => {
+                ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+                ctx.fillRect(pipe.x, pipe.topHeight + pipeGap, pipeWidth, canvas.height - pipe.topHeight - pipeGap);
+            });
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function goHome() {
+            window.location.href = '../index.html';
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
